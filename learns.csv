@@ -1,6 +1,3 @@
 Date,Recall,Awnser,Known
-2023-09-30 23:11:01.408033,+test,,False
-2023-09-30 23:11:01.417911,+haha,*this is important,False
-2023-09-30 23:11:01.430169,+this isnt important,,False
-2023-10-01 00:22:43.356558,This is a famous test,the test is a success,False
-2023-10-01 00:22:43.375578,what is the value of the common wealth,the value is depricated,False
+2023-10-01,what is the value of the common wealth,the value is depricated,True
+2023-10-01,great thats down.,,True

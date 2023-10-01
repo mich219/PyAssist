@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import pandas as pd
 from datetime import datetime
@@ -6,7 +7,6 @@ from datetime import datetime
 
 #path = "/media/michael/NEW VOLUME/notes/Goals/LearningLog"
 path = "/home/michael/Desktop/PyAssist"
-target_file_name = "test.txt"
 CSV_file = "learns.csv"
 
 
@@ -23,7 +23,7 @@ for root, dirs, files in os.walk(path):
 
 					if line[0] == "+":
 						new_row = pd.DataFrame([{
-							'Date': datetime.now(),
+							'Date': datetime.now().date(),
 							'Recall': line[1:].strip(),
 							'Awnser':"",
 							'Known': False
@@ -43,18 +43,33 @@ for root, dirs, files in os.walk(path):
 				file.writelines(lines)
 
 
-filtered_df = df.loc[df['Known'] == False,['Recall','Awnser']]
-print(filtered_df)
+if len(sys.argv) > 2:
+    print("-r or -a or -ra")
+    sys.exit(1)
 
+if sys.argv[1] == "-r":
+	filtered_df = df.loc[df['Known'] == False,['Date','Recall']]
+	print(filtered_df)
 
+if sys.argv[1] == "-a":
+	filtered_df = df.loc[df['Known'] == False,['Date','Recall','Awnser',"Known"]]
+	print(filtered_df)
 
+if sys.argv[1] == "-all":
+	print(df)
 
-
-
-
-
-
-
-
-
+if sys.argv[1] == "-ra":
+	for index, row in df.iterrows():
+		if row['Known'] == False:
+			os.system('clear')
+			print(f"Row {index + 1}:")
+			for column in ['Date','Recall']:
+				print(f"{column}: {row[column]}")
+			new_value = input("Known(y/n):")
+			for column in ['Awnser']:
+				print(f"{column}: {row[column]}")
+			if new_value == 'y':
+				df.at[index, "Known"] = True
+			input("Press Enter to continue...")
+	df.to_csv(CSV_file, index=False)
 
