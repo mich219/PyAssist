@@ -1,3 +1,5 @@
+import random
+import subprocess
 import os
 import sys
 import glob
@@ -5,16 +7,18 @@ import pandas as pd
 from datetime import datetime
 
 
-#path = "/media/michael/NEW VOLUME/notes/Goals/LearningLog"
-path = "/home/michael/Desktop/PyAssist"
-CSV_file = "learns.csv"
+path = "/media/michael/NEW VOLUME/notes/Goals/LearningLog"
+CSV_file = "/media/michael/NEW VOLUME/notes/learns.csv"
+Mod_file = "/media/michael/NEW VOLUME/notes/ModifTemp.md"
 
 
 df = pd.read_csv(CSV_file)
+df = df.sample(frac=1).reset_index(drop=True)
+
 	
 for root, dirs, files in os.walk(path):
 	for text_file in files:
-		if text_file.endswith(".txt"):
+		if text_file.endswith(".md"):
 			file_path = os.path.join(root, text_file)
 
 			with open(file_path, 'r+') as file:
@@ -26,7 +30,8 @@ for root, dirs, files in os.walk(path):
 							'Date': datetime.now().date(),
 							'Recall': line[1:].strip(),
 							'Awnser':"",
-							'Known': False
+							'Known': False,
+							'Familiarity':0			
 							}])
 						df = pd.concat([df, new_row], ignore_index=True)
 						df.to_csv(CSV_file,index=False)
@@ -34,7 +39,7 @@ for root, dirs, files in os.walk(path):
 						lines[i] = newline
 
 					if line[0] == "*":
-						df.iloc[-1, df.columns.get_loc('Awnser')] = line[1:].strip()	
+						df.iloc[-1, df.columns.get_loc('Awnser')] += line[1:].strip() + '\n'
 						df.to_csv(CSV_file,index=False)
 						newline = "-" + line[1:]
 						lines[i] = newline
@@ -60,16 +65,40 @@ if sys.argv[1] == "-all":
 
 if sys.argv[1] == "-ra":
 	for index, row in df.iterrows():
-		if row['Known'] == False:
+		random_value = random.randint(0, row["Familiarity"])
+		if row['Known'] == False and  row["Familiarity"] == random_value:
+
 			os.system('clear')
-			print(f"Row {index + 1}:")
 			for column in ['Date','Recall']:
 				print(f"{column}: {row[column]}")
-			new_value = input("Known(y/n):")
+			new_value = input(":")
 			for column in ['Awnser']:
 				print(f"{column}: {row[column]}")
-			if new_value == 'y':
+			
+			modify = input("Known(y!) Familiar(y) Modify(m) New(n) Swap(s) or Press Enter to continue...") 
+			if new_value == 'y!':
 				df.at[index, "Known"] = True
-			input("Press Enter to continue...")
-	df.to_csv(CSV_file, index=False)
+			if new_value == 'y':
+				df.at[index, "Familiarity"] += 1
+			if modify == "s":
+				df.at[index, "Awnser"], df.at[index, "Recall"] = df.at[index, "Recall"], df.at[index, "Awnser"]
+			if modify == "m":
+				df.at[index, "Known"] = True
+				with open(Mod_file, "w") as temp_file:
+					temp_file.write("+"+str(row['Recall'])+"\n")
+					temp_file.write("* "+str(row['Awnser']))
+				subprocess.run(["vim", Mod_file]) #PUT IT ALL IN THE SAME DIRECTORY
+			if modify == "n":
+				Question = input ("Question:")
+				awnser = input ("Awnser:")
+				new_row = pd.DataFrame([{
+					'Date': datetime.now().date(),
+					'Recall': Question,
+					'Awnser':awnser,
+					'Known': False,
+					'Familiarity':0			
+					}])
+				df = pd.concat([df, new_row], ignore_index=True)
+			if sys.argv[1] in ["-a", "-r", "-ra", "-all", "-ra"]:
+				df.to_csv(CSV_file, index=False)
 
